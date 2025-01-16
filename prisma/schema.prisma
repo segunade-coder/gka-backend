@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  googleId  String   @unique
+  fullName String
+  password  String?
+  profile   String?
+  createdAt DateTime @default(now())
+}
+
+model Hero {
+  id        String   @id @default(cuid())
+  mainText  String
+  subText   String @db.LongText
+  teachers  Int      @default(1)
+  student   Int      @default(1)
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model Slider {
+  id            String   @id @default(cuid())
+  image         String
+  sliderText    String
+  sliderSubText String @db.LongText
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+}
+
+model About {
+  id        String   @id @default(cuid())
+  title     String
+  subTitle  String @db.LongText
+  image     String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model History {
+  id             String   @id @default(cuid())
+  text           String   @db.LongText
+  image          String?
+  yearsInService Float    @default(1)
+  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now())
+}
+
+model Gallery {
+  id        String   @id @default(cuid())
+  image   String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model News {
+  id        String   @id @default(cuid())
+  image     String
+  title     String @db.LongText
+  body      String @db.LongText
+  views     Int
+  likes     Int
+  publish   Boolean  @default(false)
+  edited    Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
