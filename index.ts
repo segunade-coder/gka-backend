@@ -31,6 +31,7 @@ app.use(
   cacheSuccess,
   express.static(path.join(__dirname, "images"))
 );
+app.use(express.static(path.resolve(__dirname, "./dist")));
 app.use("/api", router);
 app.use(errorHandler);
 app.listen(PORT, () => logger.info(`App Live`));

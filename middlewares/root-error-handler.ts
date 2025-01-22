@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from "express";
-import { ErrorCode, HttpException } from "./exceptions/root";
-import { InternalException } from "./exceptions/internal-exception";
+import { ErrorCode, HttpException } from "../exceptions/root";
+import { InternalException } from "../exceptions/internal-exception";
 import { ZodError } from "zod";
-import { UnprocessableEntity } from "./exceptions/validation";
+import { UnprocessableEntity } from "../exceptions/validation";
 import { PrismaClientInitializationError } from "@prisma/client/runtime/library";
-import { DatabaseException } from "./exceptions/datebase-exception";
-import { createPrismaError } from "./utils/functions";
+import { DatabaseException } from "../exceptions/datebase-exception";
+import { createPrismaError } from "../utils/functions";
 
 export const rootErrorHandler = (method: Function) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -28,7 +28,7 @@ export const rootErrorHandler = (method: Function) => {
       if (error instanceof PrismaClientInitializationError) {
         exception = new InternalException(
           "Unable to connect to database",
-          ErrorCode.INTERNAL_EXCEPTION,
+          ErrorCode.UNABLE_TO_CONNECT_TO_DATABASE,
           error
         );
         return next(exception);

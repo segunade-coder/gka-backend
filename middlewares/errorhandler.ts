@@ -15,7 +15,7 @@ export const errorHandler = (
       message:
         process.env.NODE_ENV !== "production"
           ? "unable to connect to database"
-          : "Something went wrong",
+          : "Something went wrong, ",
       errorCode: 5000,
       statusCode: 500,
       stack: err.stack,

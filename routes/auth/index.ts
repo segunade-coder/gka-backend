@@ -8,7 +8,7 @@ import {
   googleLoginSuccess,
 } from "../../controllers/auth";
 import passport from "passport";
-import { rootErrorHandler } from "../../root-error-handler";
+import { rootErrorHandler } from "../../middlewares/root-error-handler";
 import { checkAuth } from "../../middlewares/auth";
 
 const router = Router();

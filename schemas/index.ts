@@ -4,6 +4,12 @@ export const addNewSliderValidate = z.object({
   title: z.string(),
   sub: z.string(),
 });
+export const addReviews = z.object({
+  title: z.string(),
+  body: z.string(),
+  date: z.string(),
+  location: z.string(),
+});
 export const validateParamId = z.string();
 export const validateHistory = z.object({
   id: z.string(),
@@ -14,4 +20,14 @@ export const validateNewsPost = z.object({
   title: z.string(),
   body: z.string(),
   publish: z.enum(["true", "false"]),
+});
+export const validateContact = z.object({
+  fullname: z.string(),
+  email: z.string().email(),
+  message: z.string(),
+});
+export const validateReview = z.object({
+  fullname: z.string(),
+  rank: z.string(),
+  review: z.string(),
 });

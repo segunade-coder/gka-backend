@@ -1,15 +1,13 @@
 import { CorsOptions } from "cors";
 import dotenv from "dotenv";
-import { Request } from "express";
 dotenv.config({ path: "../../.env" });
 import session from "express-session";
 import multer from "multer";
-import { resolve } from "path";
 import { BadRequest } from "../../exceptions/bad-request";
 import { ErrorCode } from "../../exceptions/root";
 const MysqlStore = require("express-mysql-session")(session);
 export const corsConfig: CorsOptions = {
-  origin: ["http://localhost:5173", "http://localhost:5174"],
+  origin: ["http://localhost:5173", "http://192.168.0.160:5173"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
 };
@@ -44,7 +42,7 @@ export const sessionMiddleware = session({
   saveUninitialized: false,
   resave: false,
   store: sessionStore,
-  name: "rayvvin",
+  name: "gka_website_production",
   cookie: {
     secure: process.env.NODE_ENV === "production" ? true : "auto",
     httpOnly: true,

@@ -17,7 +17,7 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   googleId  String   @unique
-  fullName String
+  fullName  String
   password  String?
   profile   String?
   createdAt DateTime @default(now())
@@ -26,7 +26,7 @@ model User {
 model Hero {
   id        String   @id @default(cuid())
   mainText  String
-  subText   String @db.LongText
+  subText   String   @db.LongText
   teachers  Int      @default(1)
   student   Int      @default(1)
   updatedAt DateTime @updatedAt
@@ -37,7 +37,7 @@ model Slider {
   id            String   @id @default(cuid())
   image         String
   sliderText    String
-  sliderSubText String @db.LongText
+  sliderSubText String   @db.LongText
   updatedAt     DateTime @updatedAt
   createdAt     DateTime @default(now())
 }
@@ -45,7 +45,7 @@ model Slider {
 model About {
   id        String   @id @default(cuid())
   title     String
-  subTitle  String @db.LongText
+  subTitle  String   @db.LongText
   image     String
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
@@ -62,7 +62,7 @@ model History {
 
 model Gallery {
   id        String   @id @default(cuid())
-  image   String
+  image     String
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 }
@@ -70,8 +70,8 @@ model Gallery {
 model News {
   id        String   @id @default(cuid())
   image     String
-  title     String @db.LongText
-  body      String @db.LongText
+  title     String   @db.LongText
+  body      String   @db.LongText
   views     Int
   likes     Int
   publish   Boolean  @default(false)
@@ -80,3 +80,40 @@ model News {
   createdAt DateTime @default(now())
 }
 
+model Events {
+  id        String   @id @default(cuid())
+  image     String
+  title     String   @db.LongText
+  body      String   @db.LongText
+  location  String
+  date      DateTime
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model Messages {
+  id        String   @id @default(cuid())
+  fullname  String
+  email     String
+  message   String   @db.LongText
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model Reviews {
+  id        String   @id @default(cuid())
+  fullname  String
+  review    String   @db.LongText
+  rank      String   @db.MediumText
+  updatedAt DateTime @updatedAt
+  publish   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Sessions {
+  session_id String @id @db.VarChar(128)
+  expires    Int
+  data       String @db.MediumText
+
+  @@map("sessions")
+}

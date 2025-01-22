@@ -60,51 +60,6 @@ export const generateRandomId = function (): string {
     .sort(() => 0.5 - Math.random())
     .join("");
 };
-export const extractFullUrlProducts = (req: Request) => {
-  return `${req.protocol}://${req["headers"].host}/images/product/`;
-};
-export const extractFullUrlStore = (req: Request) => {
-  return `${req.protocol}://${req["headers"].host}/images/store/`;
-};
-export const extractFullUrlUser = (req: Request) => {
-  return `${req.protocol}://${req["headers"].host}/images/user/`;
-};
-const transporter: Transporter = nodemailer.createTransport({
-  service: "gmail",
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.USER_MAIL,
-    pass: process.env.PASS,
-  },
-});
-
-export const sendEmail = async (
-  from: string = "Ush Engineering Team",
-  subject: string,
-  to: string | string[],
-  html: any
-) => {
-  const mailOptions: MailOptions = {
-    from: from + " <ushengineering@gmail.com>",
-    to,
-    subject,
-    html,
-  };
-  try {
-    const result = await transporter.sendMail(mailOptions);
-    return {
-      status: true,
-      message: result,
-    };
-  } catch (error) {
-    return {
-      status: false,
-      message: error,
-    };
-  }
-};
 
 export const returnJSONSuccess = (
   responseObject: Response,
@@ -174,4 +129,24 @@ export const getNewsContent = async (publish: boolean, limit?: number) => {
     },
   });
   return content;
+};
+export const getEvent = async (limit: number, occured: boolean) => {
+  const filter = occured
+    ? {
+        date: {
+          gte: new Date(),
+        },
+      }
+    : {};
+  const events = prisma.events.findMany({
+    where: {
+      ...filter,
+    },
+    take: limit,
+    orderBy: {
+      date: "asc",
+    },
+  });
+
+  return events;
 };

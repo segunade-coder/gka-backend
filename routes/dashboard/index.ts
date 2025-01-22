@@ -1,29 +1,37 @@
 import { Router } from "express";
 import {
+  addEvents,
   addLikes,
   addNewAbout,
   addNewNews,
   addNewSlider,
+  addReview,
   addToGallery,
   addViews,
+  contactUs,
   deleteAbout,
+  deleteEvent,
   deleteGallery,
   deleteNews,
   deleteSlider,
   editAbout,
+  editEvents,
   editGallery,
   editHistory,
   editNews,
   editSlider,
   getAboutSection,
   getAll,
+  getEvents,
   getGallerySection,
   getHistorySection,
+  getMessages,
   getNewsById,
   getNewsSection,
+  getReviews,
   getSliderSection,
 } from "../../controllers/dashboard";
-import { rootErrorHandler } from "../../root-error-handler";
+import { rootErrorHandler } from "../../middlewares/root-error-handler";
 import {
   optimizeImage,
   optimizeImages,
@@ -101,4 +109,23 @@ router
   );
 router.put("/news/:id/views", rootErrorHandler(addViews));
 router.put("/news/:id/likes", rootErrorHandler(addLikes));
+router.get("/reviews", rootErrorHandler(getReviews));
+router
+  .route("/events")
+  .get(rootErrorHandler(getEvents))
+  .post(
+    [checkAuth, uploadImage.single("image"), optimizeImage],
+    rootErrorHandler(addEvents)
+  );
+router
+  .route("/events/:id")
+  .put(
+    [checkAuth, uploadImage.single("image"), optionalOptimizeImage],
+    rootErrorHandler(editEvents)
+  )
+  .delete(checkAuth, rootErrorHandler(deleteEvent));
+router.post("/reviews", rootErrorHandler(addReview));
+router.post("/contact-us", rootErrorHandler(contactUs));
+router.get("/messages", rootErrorHandler(getMessages));
+
 export { router as dashboardRoute };

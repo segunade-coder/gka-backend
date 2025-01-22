@@ -7,14 +7,17 @@ import {
   getNewsContent,
   getGalleryContent,
   getSliderContent,
-  returnJSONError,
+  getEvent,
 } from "../utils/functions";
 import { prisma } from "../prisma";
 import {
   addNewSliderValidate,
+  addReviews,
+  validateContact,
   validateHistory,
   validateNewsPost,
   validateParamId,
+  validateReview,
 } from "../schemas";
 
 export const getAll = async (req: Request, res: Response) => {
@@ -26,6 +29,7 @@ export const getAll = async (req: Request, res: Response) => {
       history: await getHistoryContent(),
       gallery: await getGalleryContent(9),
       news: await getNewsContent(true, 3),
+      events: await getEvent(5, true),
     },
   });
 };
@@ -218,6 +222,15 @@ export const deleteNews = async (req: Request, res: Response) => {
   });
   return returnJSONSuccess(res);
 };
+export const deleteEvent = async (req: Request, res: Response) => {
+  const id = validateParamId.parse(req.params.id);
+  await prisma.events.delete({
+    where: {
+      id,
+    },
+  });
+  return returnJSONSuccess(res);
+};
 export const getNewsById = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
   const data = await prisma.news.findFirst({
@@ -256,4 +269,92 @@ export const addLikes = async (req: Request, res: Response) => {
     },
   });
   return returnJSONSuccess(res, { data });
+};
+export const getEvents = async (req: Request, res: Response) => {
+  const data = await prisma.events.findMany({
+    orderBy: {
+      date: "asc",
+    },
+  });
+  return returnJSONSuccess(res, {
+    data,
+  });
+};
+export const getReviews = async (req: Request, res: Response) => {
+  const data = await prisma.reviews.findMany({
+    where: {
+      publish: true,
+    },
+  });
+  const newReview: {}[][] = [];
+  let temp4: {}[] = [];
+  data.map((review, i) => {
+    if (temp4.length === 4) {
+      newReview.push(temp4);
+      temp4 = [];
+    }
+    temp4.push(review);
+  });
+  temp4.length > 0 && newReview.push(temp4);
+  return returnJSONSuccess(res, { data: newReview });
+};
+export const addReview = async (req: Request, res: Response) => {
+  const validated = validateReview.parse(req.body);
+
+  await prisma.reviews.create({
+    data: validated,
+  });
+
+  return returnJSONSuccess(res);
+};
+export const contactUs = async (req: Request, res: Response) => {
+  const validated = validateContact.parse(req.body);
+
+  await prisma.messages.create({
+    data: validated,
+  });
+
+  return returnJSONSuccess(res);
+};
+export const addEvents = async (req: Request, res: Response) => {
+  const validated = addReviews.parse(req.body);
+  await prisma.events.create({
+    data: {
+      title: validated.title,
+      body: validated.body,
+      date: new Date(validated.date),
+      location: validated.location,
+      image: (req.file?.filename as string) || "",
+    },
+  });
+  return returnJSONSuccess(res);
+};
+export const editEvents = async (req: Request, res: Response) => {
+  const id = validateParamId.parse(req.params.id);
+  const validated = addReviews.parse(req.body);
+  const image = req.file ? { image: req.file.filename as string } : {};
+  await prisma.events.update({
+    where: {
+      id,
+    },
+    data: {
+      title: validated.title,
+      body: validated.body,
+      date: new Date(validated.date),
+      location: validated.location,
+      ...image,
+    },
+  });
+  return returnJSONSuccess(res);
+};
+export const getMessages = async (req: Request, res: Response) => {
+  const messages = await prisma.messages.findMany();
+  const reviews = await prisma.reviews.findMany();
+
+  return returnJSONSuccess(res, {
+    data: {
+      messages,
+      reviews,
+    },
+  });
 };
