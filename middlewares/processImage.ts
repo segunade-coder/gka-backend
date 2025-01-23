@@ -3,7 +3,8 @@ import { BadRequest } from "../exceptions/bad-request";
 import { ErrorCode } from "../exceptions/root";
 import sharp from "sharp";
 import path from "path";
-
+import fs from "fs";
+import logger from "../utils/logger";
 export const optimizeImages = async (
   req: Request,
   res: Response,
@@ -112,5 +113,18 @@ export const optionalOptimizeImage = async (
   } catch (error) {
     console.log(error);
     next(error);
+  }
+};
+export const deleteUnusedImage = (filename: { image: string } | null) => {
+  if (filename) {
+    fs.unlink(
+      path.resolve(__dirname, `../images/${filename.image}`),
+      (error) => {
+        if (error) {
+          logger.error("Unable to delete image");
+        }
+        logger.info("deleted file - " + filename.image);
+      }
+    );
   }
 };
