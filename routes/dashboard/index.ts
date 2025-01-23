@@ -8,6 +8,7 @@ import {
   addReview,
   addToGallery,
   addViews,
+  changeReviewStatus,
   contactUs,
   deleteAbout,
   deleteEvent,
@@ -129,7 +130,10 @@ router
 router.post("/reviews", rootErrorHandler(addReview));
 router.post("/contact-us", rootErrorHandler(contactUs));
 router.get("/messages", rootErrorHandler(getMessages));
-router.route("/reviews/:id").delete(checkAuth, rootErrorHandler(deleteReview));
-router.delete("messages/:id", checkAuth, rootErrorHandler(deleteMessage));
+router
+  .route("/reviews/:id")
+  .delete(checkAuth, rootErrorHandler(deleteReview))
+  .put(checkAuth, rootErrorHandler(changeReviewStatus));
+router.delete("/messages/:id", checkAuth, rootErrorHandler(deleteMessage));
 
 export { router as dashboardRoute };
