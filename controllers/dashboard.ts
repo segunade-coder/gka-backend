@@ -18,6 +18,7 @@ import {
   validateNewsPost,
   validateParamId,
   validateReview,
+  validateReviewStatus,
 } from "../schemas";
 
 export const getAll = async (req: Request, res: Response) => {
@@ -357,4 +358,36 @@ export const getMessages = async (req: Request, res: Response) => {
       reviews,
     },
   });
+};
+export const deleteReview = async (req: Request, res: Response) => {
+  const id = validateParamId.parse(req.params.id);
+  await prisma.reviews.delete({
+    where: {
+      id,
+    },
+  });
+  return returnJSONSuccess(res);
+};
+export const deleteMessage = async (req: Request, res: Response) => {
+  const id = validateParamId.parse(req.params.id);
+  await prisma.messages.delete({
+    where: {
+      id,
+    },
+  });
+  return returnJSONSuccess(res);
+};
+export const changeReviewStatus = async (req: Request, res: Response) => {
+  const id = validateParamId.parse(req.params.id);
+  const validated = validateReviewStatus.parse(req.body);
+
+  await prisma.reviews.update({
+    where: {
+      id,
+    },
+    data: {
+      publish: validated.publish,
+    },
+  });
+  return returnJSONSuccess(res);
 };

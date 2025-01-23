@@ -31,3 +31,6 @@ export const validateReview = z.object({
   rank: z.string(),
   review: z.string(),
 });
+export const validateReviewStatus = z.object({
+  publish: z.boolean(),
+});

@@ -7,7 +7,7 @@ import { BadRequest } from "../../exceptions/bad-request";
 import { ErrorCode } from "../../exceptions/root";
 const MysqlStore = require("express-mysql-session")(session);
 export const corsConfig: CorsOptions = {
-  origin: ["http://localhost:5173", "http://192.168.0.160:5173"],
+  origin: ["http://localhost:5173", "http://192.168.0.168:5173"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
 };

@@ -33,5 +33,8 @@ app.use(
 );
 app.use(express.static(path.resolve(__dirname, "./dist")));
 app.use("/api", router);
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "./dist", "index.html"));
+});
 app.use(errorHandler);
 app.listen(PORT, () => logger.info(`App Live`));
