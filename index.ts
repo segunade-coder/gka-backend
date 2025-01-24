@@ -14,11 +14,12 @@ import passport from "passport";
 import { initializePassport } from "./config/passport.config";
 import flash from "express-flash";
 import path from "path";
-import { cacheSuccess } from "./middlewares/cache";
+import helmet from "helmet";
 // express middleware
 app.set("trust proxy", 1);
 app.use(cors(corsConfig));
 app.use(express.json());
+process.env.NODE_ENV === "production" && app.use(helmet());
 app.use(compression());
 app.use(flash());
 app.use(sessionMiddleware);
@@ -26,11 +27,7 @@ app.use(morganLogger);
 initializePassport(passport);
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(
-  "/images",
-  cacheSuccess,
-  express.static(path.join(__dirname, "images"))
-);
+app.use("/images", express.static(path.join(__dirname, "images")));
 app.use(express.static(path.resolve(__dirname, "./dist")));
 app.use("/api", router);
 app.get("*", (req, res) => {
