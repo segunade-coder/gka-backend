@@ -14,13 +14,7 @@ export const loginAuthError = (req: Request, res: Response) => {
     errorCode: message[2] ? +message[2] : ErrorCode.BAD_REQUEST,
   });
 };
-export const googleAuthError = (req: Request, res: Response) => {
-  let message = req.flash("error");
-  res.status(401).json({
-    status: false,
-    message: message[0],
-  });
-};
+
 export const logout = async (
   req: Request,
   res: Response,
@@ -38,7 +32,4 @@ export const localLoginSuccess = async (req: Request, res: Response) => {
   res
     .status(200)
     .json({ status: true, message: "Login Successful", data: req.user });
-};
-export const googleLoginSuccess = async (req: Request, res: Response) => {
-  res.redirect("/admin");
 };
