@@ -1,5 +1,6 @@
 import mysql, { ConnectionConfig } from "mysql";
 import dotenv from "dotenv";
+import logger from "../utils/logger";
 dotenv.config({ path: "../.env" });
 
 const db_cred: ConnectionConfig = {
@@ -16,10 +17,10 @@ const connection = mysql.createConnection(db_cred);
 //connect to the apache server
 connection.connect((err) => {
   if (err) {
-    console.log("App started. Error connecting to database", err);
+    logger.info("App started. Error connecting to database", err);
     throw err;
   }
-  console.log("connected");
+  logger.info("connected");
 });
 // export the connection
 export default connection;

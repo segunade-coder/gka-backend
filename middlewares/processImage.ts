@@ -75,7 +75,7 @@ export const optimizeImage = async (
     };
     next();
   } catch (error) {
-    console.log(error);
+    logger.info(error);
     next(error);
   }
 };
@@ -111,7 +111,7 @@ export const optionalOptimizeImage = async (
     };
     next();
   } catch (error) {
-    console.log(error);
+    logger.info(error);
     next(error);
   }
 };
