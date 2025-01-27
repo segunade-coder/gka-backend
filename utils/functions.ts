@@ -1,66 +1,18 @@
-import { Request, Response } from "express";
-import { MailOptions } from "nodemailer/lib/sendmail-transport";
-import { Transporter } from "nodemailer";
-import nodemailer from "nodemailer";
-import {
-  PrismaClientKnownRequestError,
-  PrismaClientValidationError,
-} from "@prisma/client/runtime/library";
-import { ErrorCode } from "../exceptions/root";
-import { prisma } from "../prisma";
-export const createPrismaError = (error: Error) => {
-  if (error instanceof PrismaClientKnownRequestError) {
-    let errorMessage: { message: string; code?: number } = { message: "" };
-    switch (error.code) {
-      case "P2002":
-        errorMessage = {
-          message: `Duplicate data\n ${
-            process.env.NODE_ENV !== "production" && error.message
-          } `,
-        };
-        break;
-      case "P2025":
-        if (error.name === "NotFoundError") {
-          errorMessage = {
-            message: `Not Found\n ${
-              process.env.NODE_ENV !== "production" && error.message
-            }`,
-            code: ErrorCode.NOT_FOUND,
-          };
-        } else {
-          errorMessage = {
-            message: `Record Not found\n ${
-              process.env.NODE_ENV !== "production" && error.message
-            }`,
-          };
-        }
-        break;
-      default:
-        errorMessage = { message: error.message };
-    }
-    return errorMessage;
-  }
-  if (error instanceof PrismaClientValidationError) {
-    return {
-      message: `Invalid Data Sent\n ${
-        process.env.NODE_ENV !== "production" && error.message
-      } `,
-    };
-  }
-  return null;
-};
+import { Response } from "express";
+import db from "./mysqlApi";
 export function convertToSubcurrency(amount: number, factor = 100) {
   return Math.round(amount * factor);
 }
-export const generateRandomId = function (): string {
-  let randomValues: string =
+export const generateRandomId = function (length: number = 16): string {
+  const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  return randomValues
-    .split("")
-    .sort(() => 0.5 - Math.random())
-    .join("");
+  let result = "";
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
 };
-
 export const returnJSONSuccess = (
   responseObject: Response,
   rest?: object | undefined,
@@ -97,56 +49,69 @@ export const generateRandomNumbers = (repeatNumber: number = 4) => {
   return parseInt(otp);
 };
 export const getSliderContent = async () => {
-  const slider = await prisma.slider.findMany();
-  return slider;
+  const sliders = await db.query("SELECT * FROM slider");
+  return sliders;
 };
 export const getHeroContent = async () => {
-  const content = await prisma.hero.findFirst();
-  return content;
+  const content = await db.query("SELECT * FROM hero LIMIT 1");
+  return content[0];
 };
 export const getAboutContent = async () => {
-  const content = await prisma.about.findMany();
-  return content;
+  const abouts = await db.query("SELECT * FROM about");
+  return abouts;
 };
 export const getHistoryContent = async () => {
-  const content = await prisma.history.findFirst({});
-  return content;
+  const content = await db.query("SELECT * FROM history LIMIT 1");
+  return content[0];
 };
 export const getGalleryContent = async (count?: number) => {
-  const content = await prisma.gallery.findMany({
-    take: count,
-  });
+  const query = count
+    ? `SELECT * FROM gallery LIMIT ${count}`
+    : "SELECT * FROM gallery";
+  const content = await db.query(query);
   return content;
 };
 export const getNewsContent = async (publish: boolean, limit?: number) => {
-  const content = await prisma.news.findMany({
-    take: limit,
-    where: {
-      AND: [publish ? { publish: true } : {}],
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
+  let query = "SELECT * FROM news";
+  const conditions = [];
+
+  if (publish) {
+    conditions.push("publish = 1");
+  }
+
+  if (conditions.length > 0) {
+    query += " WHERE " + conditions.join(" AND ");
+  }
+
+  query += " ORDER BY createdAt ASC";
+
+  if (limit) {
+    query += ` LIMIT ${limit}`;
+  }
+
+  const content = await db.query(query);
   return content;
 };
-export const getEvent = async (limit: number, occured: boolean) => {
-  const filter = occured
-    ? {
-        date: {
-          gte: new Date(),
-        },
-      }
-    : {};
-  const events = prisma.events.findMany({
-    where: {
-      ...filter,
-    },
-    take: limit,
-    orderBy: {
-      date: "asc",
-    },
-  });
+export const getEvent = async (limit: number, occurred: boolean) => {
+  let query = "SELECT * FROM events";
+  const conditions = [];
 
+  if (occurred) {
+    conditions.push(
+      `date >= '${new Date().toISOString().slice(0, 19).replace("T", " ")}'`
+    );
+  }
+
+  if (conditions.length > 0) {
+    query += " WHERE " + conditions.join(" AND ");
+  }
+
+  query += " ORDER BY date ASC";
+
+  if (limit) {
+    query += ` LIMIT ${limit}`;
+  }
+
+  const events = await db.query(query);
   return events;
 };

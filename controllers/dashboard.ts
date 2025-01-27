@@ -9,7 +9,6 @@ import {
   getSliderContent,
   getEvent,
 } from "../utils/functions";
-import { prisma } from "../prisma";
 import {
   addNewSliderValidate,
   addReviews,
@@ -21,6 +20,7 @@ import {
   validateReviewStatus,
 } from "../schemas";
 import { deleteUnusedImage } from "../middlewares/processImage";
+import db from "../utils/mysqlApi";
 
 /* Begining of GET requests */
 export const getAll = async (req: Request, res: Response) => {
@@ -68,29 +68,20 @@ export const getNewsSection = async (req: Request, res: Response) => {
 };
 export const getNewsById = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
-  const data = await prisma.news.findFirst({
-    where: {
-      id,
-    },
-  });
-  return returnJSONSuccess(res, { data });
+  const query = "SELECT * FROM news WHERE id = ? LIMIT 1";
+  const data = await db.queryString(query, [id]);
+  return returnJSONSuccess(res, { data: data[0] });
 };
 export const getEvents = async (req: Request, res: Response) => {
-  const data = await prisma.events.findMany({
-    orderBy: {
-      date: "asc",
-    },
-  });
+  const query = "SELECT * FROM events ORDER BY date ASC";
+  const data = await db.query(query);
   return returnJSONSuccess(res, {
     data,
   });
 };
 export const getReviews = async (req: Request, res: Response) => {
-  const data = await prisma.reviews.findMany({
-    where: {
-      publish: true,
-    },
-  });
+  const query = "SELECT * FROM reviews WHERE publish = 1";
+  const data = await db.query(query);
   const newReview: {}[][] = [];
   let temp4: {}[] = [];
   data.map((review, i) => {
@@ -104,8 +95,8 @@ export const getReviews = async (req: Request, res: Response) => {
   return returnJSONSuccess(res, { data: newReview });
 };
 export const getMessages = async (req: Request, res: Response) => {
-  const messages = await prisma.messages.findMany();
-  const reviews = await prisma.reviews.findMany();
+  const messages = await db.query("SELECT * FROM messages");
+  const reviews = await db.query("SELECT * FROM reviews");
 
   return returnJSONSuccess(res, {
     data: {
@@ -120,110 +111,90 @@ export const getMessages = async (req: Request, res: Response) => {
 
 export const addNewSlider = async (req: Request, res: Response) => {
   const validated = addNewSliderValidate.parse(req.body);
-  await prisma.slider.create({
-    data: {
-      sliderSubText: validated.sub,
-      sliderText: validated.title,
-      image: req.file?.filename as string,
-    },
-  });
+  const data = {
+    sliderSubText: validated.sub,
+    sliderText: validated.title,
+    image: req.file?.filename as string,
+  };
+
+  await db.insert("slider", data);
   return returnJSONSuccess(res);
 };
 export const addNewAbout = async (req: Request, res: Response) => {
   const validated = addNewSliderValidate.parse(req.body);
-  await prisma.about.create({
-    data: {
-      subTitle: validated.sub,
-      title: validated.title,
-      image: req.file?.filename as string,
-    },
-  });
+
+  const data = {
+    subTitle: validated.sub,
+    title: validated.title,
+    image: req.file?.filename as string,
+  };
+
+  await db.insert("about", data);
   return returnJSONSuccess(res);
 };
 export const addToGallery = async (req: Request, res: Response) => {
   const images = req.files as Express.Multer.File[];
-  await prisma.gallery.createMany({
-    data: Array.from(images).map((img) => {
-      return {
-        image: img.filename,
-      };
-    }),
-  });
+  const data = Array.from(images).map((img) => ({
+    image: img.filename,
+  }));
+
+  await Promise.all(data.map((imgData) => db.insert("gallery", imgData)));
   return returnJSONSuccess(res);
 };
 export const addNewNews = async (req: Request, res: Response) => {
   const validated = validateNewsPost.parse(req.body);
-  await prisma.news.create({
-    data: {
-      body: validated.body,
-      title: validated.title,
-      publish: validated.publish === "true" ? true : false,
-      likes: 0,
-      views: 0,
-      edited: false,
-      image: (req.file?.filename as string) || "",
-    },
-  });
+  const data = {
+    body: validated.body,
+    title: validated.title,
+    publish: validated.publish === "true" ? 1 : 0,
+    likes: 0,
+    views: 0,
+    edited: false,
+    image: (req.file?.filename as string) || "",
+  };
+
+  await db.insert("news", data);
   return returnJSONSuccess(res);
 };
 export const addViews = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
-  const data = await prisma.news.update({
-    where: {
-      id,
-    },
-    data: {
-      views: {
-        increment: 1,
-      },
-    },
-  });
-  return returnJSONSuccess(res, { data });
+  const query = "UPDATE news SET views = views + 1 WHERE id = ?";
+  await db.queryString(query, [id]);
+
+  return returnJSONSuccess(res);
 };
 export const addLikes = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
   const value = req.body.like as boolean;
-  let action = value ? { increment: 1 } : { decrement: 1 };
-  const data = await prisma.news.update({
-    where: {
-      id,
-    },
-    data: {
-      likes: {
-        ...action,
-      },
-    },
-  });
-  return returnJSONSuccess(res, { data });
+  const action = value ? 1 : -1;
+
+  const query = "UPDATE news SET likes = likes + ? WHERE id = ?";
+  await db.queryString(query, [action, id]);
+  return returnJSONSuccess(res);
 };
 export const addReview = async (req: Request, res: Response) => {
   const validated = validateReview.parse(req.body);
 
-  await prisma.reviews.create({
-    data: validated,
-  });
-
+  await db.insert("reviews", validated);
   return returnJSONSuccess(res);
 };
 export const addEvents = async (req: Request, res: Response) => {
   const validated = addReviews.parse(req.body);
-  await prisma.events.create({
-    data: {
-      title: validated.title,
-      body: validated.body,
-      date: new Date(validated.date),
-      location: validated.location,
-      image: (req.file?.filename as string) || "",
-    },
-  });
+  const data = {
+    title: validated.title,
+    body: validated.body,
+    date: new Date(validated.date),
+    location: validated.location,
+    image: (req.file?.filename as string) || "",
+  };
+
+  await db.insert("events", data);
   return returnJSONSuccess(res);
 };
 export const contactUs = async (req: Request, res: Response) => {
   const validated = validateContact.parse(req.body);
 
-  await prisma.messages.create({
-    data: validated,
-  });
+  await db.insert("messages", validated);
 
   return returnJSONSuccess(res);
 };
@@ -235,24 +206,25 @@ export const editSlider = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
   const validated = addNewSliderValidate.parse(req.body);
   const image = req.file ? { image: req.file.filename as string } : {};
-  const prevImage = await prisma.slider.findFirst({
-    where: {
-      id,
-    },
-    select: {
-      image: true,
-    },
-  });
-  await prisma.slider.update({
-    where: {
-      id,
-    },
-    data: {
-      sliderSubText: validated.sub,
-      sliderText: validated.title,
-      ...image,
-    },
-  });
+
+  const prevImageQuery = "SELECT image FROM slider WHERE id = ? LIMIT 1";
+  const prevImageResult = await db.queryString(prevImageQuery, [id]);
+  const prevImage = prevImageResult[0];
+  const updateQuery = `
+      UPDATE slider
+      SET sliderSubText = ?, sliderText = ?, ${
+        image.image ? "image = ?," : ""
+      } updatedAt = NOW()
+      WHERE id = ?
+  `;
+  const updateParams = [
+    validated.sub,
+    validated.title,
+    ...(image.image ? [image.image] : []),
+    id,
+  ];
+  await db.queryString(updateQuery, updateParams);
+
   if (image.image) deleteUnusedImage(prevImage);
 
   return returnJSONSuccess(res);
@@ -261,59 +233,58 @@ export const editAbout = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
   const validated = addNewSliderValidate.parse(req.body);
   const image = req.file ? { image: req.file.filename as string } : {};
-  const prevImage = await prisma.about.findFirst({
-    where: {
-      id,
-    },
-    select: {
-      image: true,
-    },
-  });
-  await prisma.about.update({
-    where: {
-      id,
-    },
-    data: {
-      subTitle: validated.sub,
-      title: validated.title,
-      ...image,
-    },
-  });
+
+  const prevImageQuery = "SELECT image FROM about WHERE id = ? LIMIT 1";
+  const prevImageResult = await db.queryString(prevImageQuery, [id]);
+  const prevImage = prevImageResult[0];
+
+  const updateQuery = `
+      UPDATE about
+      SET subTitle = ?, title = ?, ${
+        image.image ? "image = ?," : ""
+      } updatedAt = NOW()
+      WHERE id = ?
+  `;
+  const updateParams = [
+    validated.sub,
+    validated.title,
+    ...(image.image ? [image.image] : []),
+    id,
+  ];
+  await db.queryString(updateQuery, updateParams);
+
   if (image.image) deleteUnusedImage(prevImage);
 
   return returnJSONSuccess(res);
 };
 export const editHistory = async (req: Request, res: Response) => {
   const { id, history, years } = validateHistory.parse(req.body);
-  await prisma.history.update({
-    where: {
-      id,
-    },
-    data: {
-      text: history,
-      yearsInService: years,
-    },
-  });
+
+  const updateQuery = `
+      UPDATE history
+      SET text = ?, yearsInService = ?, updatedAt = NOW()
+      WHERE id = ?
+  `;
+  const updateParams = [history, years, id];
+  await db.queryString(updateQuery, updateParams);
+
   return returnJSONSuccess(res);
 };
 export const editGallery = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
-  const prevImage = await prisma.gallery.findFirst({
-    where: {
-      id,
-    },
-    select: {
-      image: true,
-    },
-  });
-  await prisma.gallery.update({
-    where: {
-      id,
-    },
-    data: {
-      image: req.file?.filename,
-    },
-  });
+
+  const prevImageQuery = "SELECT image FROM gallery WHERE id = ? LIMIT 1";
+  const prevImageResult = await db.queryString(prevImageQuery, [id]);
+  const prevImage = prevImageResult[0];
+
+  const updateQuery = `
+      UPDATE gallery
+      SET image = ?, updatedAt = NOW()
+      WHERE id = ?
+  `;
+  const updateParams = [req.file?.filename, id];
+  await db.queryString(updateQuery, updateParams);
+
   deleteUnusedImage(prevImage);
 
   return returnJSONSuccess(res);
@@ -322,26 +293,27 @@ export const editNews = async (req: Request, res: Response) => {
   const validated = validateNewsPost.parse(req.body);
   const id = validateParamId.parse(req.params.id);
   const image = req.file ? { image: req.file.filename as string } : {};
-  const prevImage = await prisma.news.findFirst({
-    where: {
-      id,
-    },
-    select: {
-      image: true,
-    },
-  });
-  await prisma.news.update({
-    where: {
-      id,
-    },
-    data: {
-      body: validated.body,
-      title: validated.title,
-      publish: validated.publish === "true" ? true : false,
-      edited: true,
-      ...image,
-    },
-  });
+
+  const prevImageQuery = "SELECT image FROM news WHERE id = ? LIMIT 1";
+  const prevImageResult = await db.queryString(prevImageQuery, [id]);
+  const prevImage = prevImageResult[0];
+
+  const updateQuery = `
+      UPDATE news
+      SET body = ?, title = ?, publish = ?, edited = true, ${
+        image.image ? "image = ?," : ""
+      } updatedAt = NOW()
+      WHERE id = ?
+  `;
+  const updateParams = [
+    validated.body,
+    validated.title,
+    validated.publish === "true" ? 1 : 0,
+    ...(image.image ? [image.image] : []),
+    id,
+  ];
+  await db.queryString(updateQuery, updateParams);
+
   if (image.image) deleteUnusedImage(prevImage);
 
   return returnJSONSuccess(res);
@@ -350,26 +322,28 @@ export const editEvents = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
   const validated = addReviews.parse(req.body);
   const image = req.file ? { image: req.file.filename as string } : {};
-  const prevImage = await prisma.slider.findFirst({
-    where: {
-      id,
-    },
-    select: {
-      image: true,
-    },
-  });
-  await prisma.events.update({
-    where: {
-      id,
-    },
-    data: {
-      title: validated.title,
-      body: validated.body,
-      date: new Date(validated.date),
-      location: validated.location,
-      ...image,
-    },
-  });
+
+  const prevImageQuery = "SELECT image FROM events WHERE id = ? LIMIT 1";
+  const prevImageResult = await db.queryString(prevImageQuery, [id]);
+  const prevImage = prevImageResult[0];
+
+  const updateQuery = `
+            UPDATE events
+            SET title = ?, body = ?, date = ?, location = ?, ${
+              image.image ? "image = ?," : ""
+            } updatedAt = NOW()
+            WHERE id = ?
+        `;
+  const updateParams = [
+    validated.title,
+    validated.body,
+    new Date(validated.date),
+    validated.location,
+    ...(image.image ? [image.image] : []),
+    id,
+  ];
+  await db.queryString(updateQuery, updateParams);
+
   if (image.image) deleteUnusedImage(prevImage);
 
   return returnJSONSuccess(res);
@@ -378,14 +352,16 @@ export const changeReviewStatus = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
   const validated = validateReviewStatus.parse(req.body);
 
-  await prisma.reviews.update({
-    where: {
-      id,
-    },
-    data: {
-      publish: validated.publish,
-    },
-  });
+  const publishValue = validated.publish ? 1 : 0;
+
+  const updateQuery = `
+      UPDATE reviews
+      SET publish = ?
+      WHERE id = ?
+  `;
+  const updateParams = [publishValue, id];
+  await db.queryString(updateQuery, updateParams);
+
   return returnJSONSuccess(res);
 };
 /* End of PUT requests */
@@ -394,111 +370,82 @@ export const changeReviewStatus = async (req: Request, res: Response) => {
 
 export const deleteGallery = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
-  const prevImage = await prisma.gallery.findFirst({
-    where: {
-      id,
-    },
-    select: {
-      image: true,
-    },
-  });
-  await prisma.gallery.delete({
-    where: {
-      id,
-    },
-  });
+  const prevImageQuery = "SELECT image FROM gallery WHERE id = ? LIMIT 1";
+  const prevImageResult = await db.queryString(prevImageQuery, [id]);
+  const prevImage = prevImageResult[0];
+
+  const deleteQuery = "DELETE FROM gallery WHERE id = ?";
+  await db.queryString(deleteQuery, [id]);
+
   deleteUnusedImage(prevImage);
   return returnJSONSuccess(res);
 };
 export const deleteSlider = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
-  const prevImage = await prisma.slider.findFirst({
-    where: {
-      id,
-    },
-    select: {
-      image: true,
-    },
-  });
-  await prisma.slider.delete({
-    where: {
-      id,
-    },
-  });
+
+  const prevImageQuery = "SELECT image FROM slider WHERE id = ? LIMIT 1";
+  const prevImageResult = await db.queryString(prevImageQuery, [id]);
+  const prevImage = prevImageResult[0];
+
+  const deleteQuery = "DELETE FROM slider WHERE id = ?";
+  await db.queryString(deleteQuery, [id]);
+
   deleteUnusedImage(prevImage);
   return returnJSONSuccess(res);
 };
 export const deleteAbout = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
-  const prevImage = await prisma.about.findFirst({
-    where: {
-      id,
-    },
-    select: {
-      image: true,
-    },
-  });
-  await prisma.about.delete({
-    where: {
-      id,
-    },
-  });
+
+  const prevImageQuery = "SELECT image FROM about WHERE id = ? LIMIT 1";
+  const prevImageResult = await db.queryString(prevImageQuery, [id]);
+  const prevImage = prevImageResult[0];
+
+  const deleteQuery = "DELETE FROM about WHERE id = ?";
+  await db.queryString(deleteQuery, [id]);
+
   deleteUnusedImage(prevImage);
   return returnJSONSuccess(res);
 };
 export const deleteNews = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
-  const prevImage = await prisma.news.findFirst({
-    where: {
-      id,
-    },
-    select: {
-      image: true,
-    },
-  });
-  await prisma.news.delete({
-    where: {
-      id,
-    },
-  });
-  deleteUnusedImage(prevImage);
 
+  const prevImageQuery = "SELECT image FROM news WHERE id = ? LIMIT 1";
+  const prevImageResult = await db.queryString(prevImageQuery, [id]);
+  const prevImage = prevImageResult[0];
+
+  const deleteQuery = "DELETE FROM news WHERE id = ?";
+  await db.queryString(deleteQuery, [id]);
+
+  deleteUnusedImage(prevImage);
   return returnJSONSuccess(res);
 };
 export const deleteEvent = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
-  const prevImage = await prisma.events.findFirst({
-    where: {
-      id,
-    },
-    select: {
-      image: true,
-    },
-  });
-  await prisma.events.delete({
-    where: {
-      id,
-    },
-  });
+
+  const prevImageQuery = "SELECT image FROM events WHERE id = ? LIMIT 1";
+  const prevImageResult = await db.queryString(prevImageQuery, [id]);
+  const prevImage = prevImageResult[0];
+
+  const deleteQuery = "DELETE FROM events WHERE id = ?";
+  await db.queryString(deleteQuery, [id]);
+
   deleteUnusedImage(prevImage);
   return returnJSONSuccess(res);
 };
 export const deleteReview = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
-  await prisma.reviews.delete({
-    where: {
-      id,
-    },
-  });
+
+  const deleteQuery = "DELETE FROM reviews WHERE id = ?";
+  await db.queryString(deleteQuery, [id]);
+
   return returnJSONSuccess(res);
 };
 export const deleteMessage = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
-  await prisma.messages.delete({
-    where: {
-      id,
-    },
-  });
+
+  const deleteQuery = "DELETE FROM messages WHERE id = ?";
+  await db.queryString(deleteQuery, [id]);
+
   return returnJSONSuccess(res);
 };
 /* End of DELETE requests */

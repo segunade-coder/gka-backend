@@ -20,7 +20,6 @@ export const logout = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user as RequestUser;
   req.logout((err) => {
     if (err) {
       return next(err);
