@@ -1,1 +1,0 @@
-import{j as e}from"./index-BNZKJDKN.js";import{I as r}from"./index-BEUJLwfg.js";import"./iconBase-DmOHPwOt.js";const i=()=>e.jsx("div",{className:"w-screen h-screen flex items-center justify-center",children:e.jsx(r,{className:"animate-spin text-4xl text-primary"})});export{i as default};

@@ -151,7 +151,9 @@ class dbQueries {
         valueArray.push(`${mysql.escape(values[key as keyof typeof values])}`);
         sqlInject.push("?");
       }
-
+      keyArray.push("updatedAt");
+      valueArray.push(`NOW()`);
+      sqlInject.push("?");
       let sql = `INSERT INTO ${table} (${keyArray.join(
         ", "
       )}) VALUES(${valueArray.join(", ")})`;

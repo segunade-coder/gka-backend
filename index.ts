@@ -19,7 +19,16 @@ import helmet from "helmet";
 app.set("trust proxy", 1);
 app.use(cors(corsConfig));
 app.use(express.json());
-process.env.NODE_ENV === "production" && app.use(helmet());
+process.env.NODE_ENV === "production" &&
+  app.use(
+    helmet.contentSecurityPolicy({
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"], // modify as needed
+        imgSrc: ["'self'", "data:", "blob:"],
+      },
+    })
+  );
 app.use(compression());
 app.use(flash());
 app.use(sessionMiddleware);
