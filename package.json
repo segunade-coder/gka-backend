@@ -11,7 +11,8 @@
     "db": "npx prisma studio",
     "prodSync": "npx prisma db push",
     "prodGen": "npx prisma generate",
-    "build": "tsc"
+    "build": "tsc",
+    "op": "nodemon ./unoptimized/index.ts"
   },
   "keywords": [],
   "author": "",
