@@ -1,31 +1,39 @@
 import { Router } from "express";
 import {
   addEvents,
+  addFaqs,
   addLikes,
   addNewAbout,
   addNewNews,
   addNewSlider,
   addReview,
+  addStudentToList,
   addToGallery,
   addViews,
   changeReviewStatus,
   contactUs,
   deleteAbout,
+  deleteAdmissionList,
   deleteEvent,
+  deleteFaq,
   deleteGallery,
   deleteMessage,
   deleteNews,
   deleteReview,
   deleteSlider,
   editAbout,
+  editAdmissionList,
   editEvents,
+  editFaq,
   editGallery,
   editHistory,
   editNews,
   editSlider,
   getAboutSection,
+  getAdmissionList,
   getAll,
   getEvents,
+  getFaqs,
   getGallerySection,
   getHistorySection,
   getMessages,
@@ -47,18 +55,19 @@ const router = Router();
 router.get("/", rootErrorHandler(getAll));
 router
   .route("/slider")
-  .get(checkAuth, rootErrorHandler(getSliderSection))
+  .all(checkAuth)
+  .get(rootErrorHandler(getSliderSection))
   .post(
-    checkAuth,
     uploadImage.single("image"),
     optimizeImage,
     rootErrorHandler(addNewSlider)
   );
 router
   .route("/slider/:id")
-  .delete(checkAuth, rootErrorHandler(deleteSlider))
+  .all(checkAuth)
+  .delete(rootErrorHandler(deleteSlider))
   .put(
-    [checkAuth, uploadImage.single("image"), optionalOptimizeImage],
+    [uploadImage.single("image"), optionalOptimizeImage],
     rootErrorHandler(editSlider)
   );
 router
@@ -79,8 +88,9 @@ router
   );
 router
   .route("/history")
-  .get(checkAuth, rootErrorHandler(getHistorySection))
-  .put(checkAuth, rootErrorHandler(editHistory));
+  .all(checkAuth)
+  .get(rootErrorHandler(getHistorySection))
+  .put(rootErrorHandler(editHistory));
 router
   .route("/gallery")
   .get(rootErrorHandler(getGallerySection))
@@ -135,5 +145,26 @@ router
   .delete(checkAuth, rootErrorHandler(deleteReview))
   .put(checkAuth, rootErrorHandler(changeReviewStatus));
 router.delete("/messages/:id", checkAuth, rootErrorHandler(deleteMessage));
+router
+  .route("/faqs")
+  .all(checkAuth)
+  .get(rootErrorHandler(getFaqs))
+  .post(rootErrorHandler(addFaqs));
 
+router
+  .route("/faq/:id")
+  .all(checkAuth)
+  .put(rootErrorHandler(editFaq))
+  .delete(rootErrorHandler(deleteFaq));
+
+router
+  .route("/admission-list")
+  .all(checkAuth)
+  .get(rootErrorHandler(getAdmissionList))
+  .post(rootErrorHandler(addStudentToList));
+router
+  .route("/admission-list/:id")
+  .all(checkAuth)
+  .put(rootErrorHandler(editAdmissionList))
+  .delete(rootErrorHandler(deleteAdmissionList));
 export { router as dashboardRoute };

@@ -34,3 +34,12 @@ export const validateReview = z.object({
 export const validateReviewStatus = z.object({
   publish: z.boolean(),
 });
+export const validateFaqs = z.object({
+  question: z.string(),
+  answer: z.string(),
+});
+export const validateAdmissionList = z.object({
+  fullname: z.string(),
+  email: z.string().email(),
+  status: z.number().min(0).max(1),
+});

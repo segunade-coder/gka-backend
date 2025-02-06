@@ -12,7 +12,9 @@ import {
 import {
   addNewSliderValidate,
   addReviews,
+  validateAdmissionList,
   validateContact,
+  validateFaqs,
   validateHistory,
   validateNewsPost,
   validateParamId,
@@ -105,6 +107,14 @@ export const getMessages = async (req: Request, res: Response) => {
     },
   });
 };
+export const getFaqs = async (req: Request, res: Response) => {
+  const data = await db.query("SELECT * FROM faq");
+  return returnJSONSuccess(res, { data });
+};
+export const getAdmissionList = async (req: Request, res: Response) => {
+  const data = await db.query("SELECT * FROM admissionlist");
+  return returnJSONSuccess(res, { data });
+};
 /* End of GET requests */
 
 /* Begining of POST requests */
@@ -189,6 +199,26 @@ export const addEvents = async (req: Request, res: Response) => {
   };
 
   await db.insert("events", data);
+  return returnJSONSuccess(res);
+};
+export const addFaqs = async (req: Request, res: Response) => {
+  const validated = validateFaqs.parse(req.body);
+  const data = {
+    question: validated.question,
+    answer: validated.answer,
+  };
+
+  await db.insert("faq", data);
+  return returnJSONSuccess(res);
+};
+export const addStudentToList = async (req: Request, res: Response) => {
+  const validated = validateAdmissionList.parse(req.body);
+  const data = {
+    fullname: validated.fullname,
+    email: validated.email,
+    status: validated.status,
+  };
+  await db.insert("admissionlist", data);
   return returnJSONSuccess(res);
 };
 export const contactUs = async (req: Request, res: Response) => {
@@ -364,6 +394,35 @@ export const changeReviewStatus = async (req: Request, res: Response) => {
 
   return returnJSONSuccess(res);
 };
+export const editFaq = async (req: Request, res: Response) => {
+  const id = validateParamId.parse(req.params.id);
+  const validated = validateFaqs.parse(req.body);
+  const updateQuery = `
+      UPDATE faq
+      SET question = ?, answer = ?
+      WHERE id = ?
+  `;
+  const updateParams = [validated.question, validated.answer, id];
+  await db.queryString(updateQuery, updateParams);
+  return returnJSONSuccess(res);
+};
+export const editAdmissionList = async (req: Request, res: Response) => {
+  const id = validateParamId.parse(req.params.id);
+  const validated = validateAdmissionList.parse(req.body);
+  const updateQuery = `
+      UPDATE admissionlist
+      SET fullname = ?, email = ?, status = ?
+      WHERE id = ?
+  `;
+  const updateParams = [
+    validated.fullname,
+    validated.email,
+    validated.status,
+    id,
+  ];
+  await db.queryString(updateQuery, updateParams);
+  return returnJSONSuccess(res);
+};
 /* End of PUT requests */
 
 /* Begining of DELETE requests */
@@ -444,6 +503,22 @@ export const deleteMessage = async (req: Request, res: Response) => {
   const id = validateParamId.parse(req.params.id);
 
   const deleteQuery = "DELETE FROM messages WHERE id = ?";
+  await db.queryString(deleteQuery, [id]);
+
+  return returnJSONSuccess(res);
+};
+export const deleteFaq = async (req: Request, res: Response) => {
+  const id = validateParamId.parse(req.params.id);
+
+  const deleteQuery = "DELETE FROM faq WHERE id = ?";
+  await db.queryString(deleteQuery, [id]);
+
+  return returnJSONSuccess(res);
+};
+export const deleteAdmissionList = async (req: Request, res: Response) => {
+  const id = validateParamId.parse(req.params.id);
+
+  const deleteQuery = "DELETE FROM admissionlist WHERE id = ?";
   await db.queryString(deleteQuery, [id]);
 
   return returnJSONSuccess(res);

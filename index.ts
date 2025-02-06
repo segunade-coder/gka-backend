@@ -26,6 +26,7 @@ process.env.NODE_ENV === "production" &&
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'"], // modify as needed
         imgSrc: ["'self'", "data:", "blob:"],
+        frameSrc: ["'self'", "https://www.youtube.com/"], // added frame-src directive
       },
     })
   );
