@@ -147,9 +147,8 @@ router
 router.delete("/messages/:id", checkAuth, rootErrorHandler(deleteMessage));
 router
   .route("/faqs")
-  .all(checkAuth)
   .get(rootErrorHandler(getFaqs))
-  .post(rootErrorHandler(addFaqs));
+  .post(checkAuth, rootErrorHandler(addFaqs));
 
 router
   .route("/faq/:id")
@@ -159,9 +158,8 @@ router
 
 router
   .route("/admission-list")
-  .all(checkAuth)
   .get(rootErrorHandler(getAdmissionList))
-  .post(rootErrorHandler(addStudentToList));
+  .post(checkAuth, rootErrorHandler(addStudentToList));
 router
   .route("/admission-list/:id")
   .all(checkAuth)
