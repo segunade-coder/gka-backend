@@ -41,5 +41,5 @@ export const validateFaqs = z.object({
 export const validateAdmissionList = z.object({
   fullname: z.string(),
   email: z.string().email(),
-  status: z.number().min(0).max(1),
+  status: z.number(),
 });

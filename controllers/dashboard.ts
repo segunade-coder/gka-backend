@@ -82,7 +82,7 @@ export const getEvents = async (req: Request, res: Response) => {
   });
 };
 export const getReviews = async (req: Request, res: Response) => {
-  const query = "SELECT * FROM reviews WHERE publish = 1";
+  const query = "SELECT * FROM reviews WHERE publish = 1 ORDER BY createdAt ASC";
   const data = await db.query(query);
   const newReview: {}[][] = [];
   let temp4: {}[] = [];
@@ -97,8 +97,8 @@ export const getReviews = async (req: Request, res: Response) => {
   return returnJSONSuccess(res, { data: newReview });
 };
 export const getMessages = async (req: Request, res: Response) => {
-  const messages = await db.query("SELECT * FROM messages");
-  const reviews = await db.query("SELECT * FROM reviews");
+  const messages = await db.query("SELECT * FROM messages ORDER BY createdAt ASC");
+  const reviews = await db.query("SELECT * FROM reviews ORDER BY createdAt ASC");
 
   return returnJSONSuccess(res, {
     data: {
@@ -108,11 +108,13 @@ export const getMessages = async (req: Request, res: Response) => {
   });
 };
 export const getFaqs = async (req: Request, res: Response) => {
-  const data = await db.query("SELECT * FROM faq");
+  const data = await db.query("SELECT * FROM faq ORDER BY createdAt ASC");
   return returnJSONSuccess(res, { data });
 };
 export const getAdmissionList = async (req: Request, res: Response) => {
-  const data = await db.query("SELECT * FROM admissionlist");
+  const data = await db.query(
+    "SELECT * FROM admissionlist ORDER BY createdAt ASC"
+  );
   return returnJSONSuccess(res, { data });
 };
 /* End of GET requests */

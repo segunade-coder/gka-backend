@@ -49,7 +49,7 @@ export const generateRandomNumbers = (repeatNumber: number = 4) => {
   return parseInt(otp);
 };
 export const getSliderContent = async () => {
-  const sliders = await db.query("SELECT * FROM slider");
+  const sliders = await db.query("SELECT * FROM slider ORDER BY createdAt ASC");
   return sliders;
 };
 export const getHeroContent = async () => {
@@ -57,7 +57,7 @@ export const getHeroContent = async () => {
   return content[0];
 };
 export const getAboutContent = async () => {
-  const abouts = await db.query("SELECT * FROM about");
+  const abouts = await db.query("SELECT * FROM about ORDER BY createdAt ASC");
   return abouts;
 };
 export const getHistoryContent = async () => {
